@@ -223,6 +223,9 @@ class API {
      * Call Gradio 5.x API using queue/join pattern
      */
     async _callGradio5(fnName, args) {
+        // Ensure connection is initialized
+        await this.checkConnection();
+
         // Step 1: Submit to queue
         const submitUrl = `${this.baseUrl}${this.apiPrefix}/queue/join`;
         const submitResponse = await fetch(submitUrl, {
