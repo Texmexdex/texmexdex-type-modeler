@@ -7,7 +7,8 @@ class API {
     constructor(baseUrl = null) {
         // Auto-detect HF Space URL or use localhost for development
         this.baseUrl = baseUrl || this._detectBaseUrl();
-        this.apiPrefix = ''; // Initialize empty prefix
+        // Default to /gradio_api which is standard for Gradio 5+ on HF Spaces
+        this.apiPrefix = '/gradio_api';
         this.isConnected = false;
         this.fnIndex = {};
         this.sessionHash = this._generateSessionHash();
@@ -53,9 +54,10 @@ class API {
                 return true;
             }
         } catch (error) {
-            console.log('Config fetch failed, will use queue-based API');
+            console.log('Config fetch failed, defaulting to /gradio_api');
+            this.apiPrefix = '/gradio_api';
         }
-        return false;
+        return true; // Assume success even if config fails, as we have a default
     }
 
     /**
