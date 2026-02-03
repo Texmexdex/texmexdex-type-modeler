@@ -59,6 +59,16 @@ class API {
     }
 
     /**
+     * Check backend connection
+     */
+    async checkConnection() {
+        if (!this.isConnected) {
+            await this.init();
+        }
+        return this.isConnected;
+    }
+
+    /**
      * Send a chat message to generate code
      */
     async chatToCode(message, history = [], currentCode = '') {
