@@ -18,7 +18,7 @@ class Viewer {
             showGrid: true,
             showAxes: true,
             wireframe: false,
-            backgroundColor: 0x1a1a2e  // Slightly lighter for contrast
+            backgroundColor: 0x0d0d0d  // Match page background
         };
 
         // Object transform state
@@ -82,8 +82,8 @@ class Viewer {
         mainLight.position.set(50, 100, 50);
         this.scene.add(mainLight);
 
-        // Fill light from opposite side
-        const fillLight = new THREE.DirectionalLight(0x88aaff, 0.5);
+        // Fill light from opposite side - neutral
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
         fillLight.position.set(-50, 50, -50);
         this.scene.add(fillLight);
 
@@ -94,13 +94,13 @@ class Viewer {
     }
 
     _setupGrid() {
-        // Main grid - lower opacity, positioned below origin
-        this.gridHelper = new THREE.GridHelper(100, 100, 0x444466, 0x333355);
+        // Main grid - subtle gray
+        this.gridHelper = new THREE.GridHelper(100, 100, 0x333333, 0x1a1a1a);
         this.gridHelper.position.y = -0.1;  // Offset to prevent z-fighting
         this.scene.add(this.gridHelper);
 
-        // Major grid lines
-        const majorGrid = new THREE.GridHelper(100, 10, 0x5555aa, 0x5555aa);
+        // Major grid lines - slightly brighter gray
+        const majorGrid = new THREE.GridHelper(100, 10, 0x444444, 0x444444);
         majorGrid.position.y = -0.1;
         this.scene.add(majorGrid);
     }
