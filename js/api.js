@@ -99,9 +99,22 @@ class API {
             const paramsJson = JSON.stringify(params);
             const response = await this._callGradio5('generate_mesh', [code, paramsJson]);
 
+            // Gradio 5.x returns file outputs as objects with 'url' or 'path'
+            let meshUrl = response[0];
+            if (meshUrl && typeof meshUrl === 'object') {
+                // Extract URL from Gradio file object
+                meshUrl = meshUrl.url || meshUrl.path || null;
+                // If it's a relative path, make it absolute
+                if (meshUrl && !meshUrl.startsWith('http')) {
+                    meshUrl = `${this.baseUrl}${meshUrl.startsWith('/') ? '' : '/'}${meshUrl}`;
+                }
+            }
+
+            console.log('Mesh URL:', meshUrl);  // Debug logging
+
             return {
-                success: response[0] !== null,
-                meshUrl: response[0],
+                success: meshUrl !== null,
+                meshUrl: meshUrl,
                 status: response[1],
                 meshInfo: response[2]
             };
@@ -185,9 +198,18 @@ class API {
             const paramsJson = JSON.stringify(params);
             const response = await this._callGradio5('export_stl', [code, paramsJson]);
 
+            // Gradio 5.x returns file outputs as objects
+            let fileUrl = response[0];
+            if (fileUrl && typeof fileUrl === 'object') {
+                fileUrl = fileUrl.url || fileUrl.path || null;
+                if (fileUrl && !fileUrl.startsWith('http')) {
+                    fileUrl = `${this.baseUrl}${fileUrl.startsWith('/') ? '' : '/'}${fileUrl}`;
+                }
+            }
+
             return {
-                success: response[0] !== null,
-                fileUrl: response[0],
+                success: fileUrl !== null,
+                fileUrl: fileUrl,
                 status: response[1]
             };
         } catch (error) {
