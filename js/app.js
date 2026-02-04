@@ -7,6 +7,8 @@ class App {
     constructor() {
         this.currentParams = {};
         this.currentCode = '';
+        this.paramDebounceTimer = null;  // For auto-regeneration
+        this.autoRegenerate = true;  // Auto-regen toggle
 
         // Initialize components
         this._initComponents();
@@ -76,6 +78,14 @@ class App {
         document.getElementById('btn-regenerate').addEventListener('click', () => {
             this._regenerateMesh();
         });
+
+        // Auto-regenerate toggle
+        const autoRegenCheckbox = document.getElementById('auto-regenerate');
+        if (autoRegenCheckbox) {
+            autoRegenCheckbox.addEventListener('change', (e) => {
+                this.autoRegenerate = e.target.checked;
+            });
+        }
 
         // Modal
         document.getElementById('modal-close').addEventListener('click', () => {
@@ -306,8 +316,25 @@ class App {
                 const value = parseFloat(e.target.value);
                 valueDisplay.textContent = value.toFixed(2);
                 this.currentParams[key] = value;
+
+                // Auto-regenerate with debounce
+                if (this.autoRegenerate) {
+                    this._debouncedRegenerate();
+                }
             });
         }
+    }
+
+    _debouncedRegenerate() {
+        // Clear previous timer
+        if (this.paramDebounceTimer) {
+            clearTimeout(this.paramDebounceTimer);
+        }
+
+        // Set new timer (500ms delay)
+        this.paramDebounceTimer = setTimeout(() => {
+            this._regenerateMesh();
+        }, 500);
     }
 
     _formatParamName(name) {
