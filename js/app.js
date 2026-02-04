@@ -446,9 +446,13 @@ class App {
 
             if (result.success && result.code) {
                 editor.setCode(result.code);
+
+                // IMPORTANT: Parse parameters FIRST to get default values
+                await this._parseParameters();
+
                 this._showToast(result.description || 'Component loaded', 'success');
 
-                // Generate mesh
+                // Now generate mesh with parsed parameters
                 await this._generateMesh(result.code);
             } else {
                 this._showToast(result.error || 'Failed to load component', 'error');
