@@ -148,20 +148,43 @@ class Viewer {
                     // Add new mesh
                     this.currentMesh = gltf.scene;
 
-                    // Apply material - vibrant blue with proper settings
+                    // Apply material with proper shading
                     this.currentMesh.traverse((child) => {
                         if (child.isMesh) {
-                            child.material = new THREE.MeshStandardMaterial({
+                            // Compute normals for proper lighting
+                            if (child.geometry) {
+                                child.geometry.computeVertexNormals();
+                            }
+
+                            child.material = new THREE.MeshPhongMaterial({
                                 color: 0x4a90d9,  // Bright blue
-                                metalness: 0.2,
-                                roughness: 0.6,
+                                specular: 0x444444,
+                                shininess: 30,
+                                flatShading: true,  // Shows face edges clearly
                                 wireframe: this.settings.wireframe,
-                                side: THREE.DoubleSide  // Render both sides
+                                side: THREE.DoubleSide
                             });
+
+                            // Add edge highlighting
+                            if (!this.settings.wireframe) {
+                                const edges = new THREE.EdgesGeometry(child.geometry, 30);
+                                const edgeMaterial = new THREE.LineBasicMaterial({
+                                    color: 0x1a5070,
+                                    transparent: true,
+                                    opacity: 0.3
+                                });
+                                const edgeLine = new THREE.LineSegments(edges, edgeMaterial);
+                                edgeLine.name = 'edges';
+                                child.add(edgeLine);
+                            }
                         }
                     });
 
                     this.scene.add(this.currentMesh);
+
+                    // Position mesh so it sits ON the grid, not through it
+                    this._positionMeshOnGrid();
+
                     this._centerAndFitCamera();
 
                     resolve(this._getMeshInfo());
@@ -186,6 +209,22 @@ class Viewer {
         } finally {
             URL.revokeObjectURL(url);
         }
+    }
+
+    /**
+     * Position mesh so its bottom sits on the grid (y=0)
+     */
+    _positionMeshOnGrid() {
+        if (!this.currentMesh) return;
+
+        const box = new THREE.Box3().setFromObject(this.currentMesh);
+        const minY = box.min.y;
+
+        // Offset mesh so bottom is at y=0 (on grid)
+        this.currentMesh.position.y -= minY;
+
+        // Store the offset for transform controls
+        this.objectPosition.y = -minY;
     }
 
     /**
@@ -266,14 +305,20 @@ class Viewer {
             this.currentMesh.traverse((child) => {
                 if (child.isMesh && child.material) {
                     child.material.wireframe = this.settings.wireframe;
-                    // Use cyan color for wireframe visibility
+
+                    // Adjust colors for wireframe visibility
                     if (this.settings.wireframe) {
-                        child.material.color.setHex(0x00ffff);
-                        child.material.emissive = new THREE.Color(0x003333);
+                        child.material.color.setHex(0x00ffff);  // Cyan
+                        child.material.emissive.setHex(0x003333);
                     } else {
-                        child.material.color.setHex(0x4a90d9);
-                        child.material.emissive = new THREE.Color(0x000000);
+                        child.material.color.setHex(0x4a90d9);  // Blue
+                        child.material.emissive.setHex(0x000000);
                     }
+                }
+
+                // Hide/show edge lines
+                if (child.name === 'edges') {
+                    child.visible = !this.settings.wireframe;
                 }
             });
         }
