@@ -106,6 +106,81 @@ class App {
         document.addEventListener('codeChanged', (e) => {
             this.currentCode = e.detail.code;
         });
+
+        // Transform controls
+        this._setupTransformControls();
+    }
+
+    _setupTransformControls() {
+        // Position sliders
+        ['x', 'y', 'z'].forEach(axis => {
+            const slider = document.getElementById(`pos-${axis}`);
+            const valueDisplay = document.getElementById(`pos-${axis}-val`);
+
+            if (slider) {
+                slider.addEventListener('input', () => {
+                    const val = parseFloat(slider.value);
+                    valueDisplay.textContent = val;
+                    this._updatePosition();
+                });
+            }
+        });
+
+        // Rotation sliders
+        ['x', 'y', 'z'].forEach(axis => {
+            const slider = document.getElementById(`rot-${axis}`);
+            const valueDisplay = document.getElementById(`rot-${axis}-val`);
+
+            if (slider) {
+                slider.addEventListener('input', () => {
+                    const val = parseFloat(slider.value);
+                    valueDisplay.textContent = val + '°';
+                    this._updateRotation();
+                });
+            }
+        });
+
+        // Reset transform button
+        const resetBtn = document.getElementById('btn-reset-transform');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => this._resetTransform());
+        }
+    }
+
+    _updatePosition() {
+        const x = parseFloat(document.getElementById('pos-x').value);
+        const y = parseFloat(document.getElementById('pos-y').value);
+        const z = parseFloat(document.getElementById('pos-z').value);
+        viewer.setPosition(x, y, z);
+    }
+
+    _updateRotation() {
+        const x = parseFloat(document.getElementById('rot-x').value);
+        const y = parseFloat(document.getElementById('rot-y').value);
+        const z = parseFloat(document.getElementById('rot-z').value);
+        viewer.setRotation(x, y, z);
+    }
+
+    _resetTransform() {
+        // Reset position
+        ['x', 'y', 'z'].forEach(axis => {
+            const slider = document.getElementById(`pos-${axis}`);
+            const valueDisplay = document.getElementById(`pos-${axis}-val`);
+            slider.value = 0;
+            valueDisplay.textContent = '0';
+        });
+
+        // Reset rotation
+        ['x', 'y', 'z'].forEach(axis => {
+            const slider = document.getElementById(`rot-${axis}`);
+            const valueDisplay = document.getElementById(`rot-${axis}-val`);
+            slider.value = 0;
+            valueDisplay.textContent = '0°';
+        });
+
+        viewer.setPosition(0, 0, 0);
+        viewer.setRotation(0, 0, 0);
+        this._showToast('Transform reset', 'success');
     }
 
     async _checkBackendConnection() {

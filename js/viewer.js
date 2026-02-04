@@ -18,8 +18,12 @@ class Viewer {
             showGrid: true,
             showAxes: true,
             wireframe: false,
-            backgroundColor: 0x0a0a0f
+            backgroundColor: 0x1a1a2e  // Slightly lighter for contrast
         };
+
+        // Object transform state
+        this.objectPosition = { x: 0, y: 0, z: 0 };
+        this.objectRotation = { x: 0, y: 0, z: 0 };
 
         this._init();
     }
@@ -35,10 +39,14 @@ class Viewer {
         this.camera.position.set(50, 50, 50);
         this.camera.lookAt(0, 0, 0);
 
-        // Renderer
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        // Renderer with proper depth buffer
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            logarithmicDepthBuffer: true  // Prevents z-fighting
+        });
         this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
-        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.container.appendChild(this.renderer.domElement);
 
         // Controls
@@ -65,34 +73,35 @@ class Viewer {
     }
 
     _setupLighting() {
-        // Ambient light
-        const ambient = new THREE.AmbientLight(0x404040, 0.5);
+        // Strong ambient for visibility
+        const ambient = new THREE.AmbientLight(0xffffff, 0.6);
         this.scene.add(ambient);
 
-        // Main directional light
-        const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        // Main directional light - stronger
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
         mainLight.position.set(50, 100, 50);
-        mainLight.castShadow = true;
         this.scene.add(mainLight);
 
-        // Fill light
-        const fillLight = new THREE.DirectionalLight(0x8888ff, 0.3);
+        // Fill light from opposite side
+        const fillLight = new THREE.DirectionalLight(0x88aaff, 0.5);
         fillLight.position.set(-50, 50, -50);
         this.scene.add(fillLight);
 
-        // Rim light
-        const rimLight = new THREE.DirectionalLight(0xffffff, 0.2);
-        rimLight.position.set(0, -50, 50);
-        this.scene.add(rimLight);
+        // Bottom fill to prevent dark undersides
+        const bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        bottomLight.position.set(0, -50, 0);
+        this.scene.add(bottomLight);
     }
 
     _setupGrid() {
-        // Main grid
-        this.gridHelper = new THREE.GridHelper(100, 100, 0x2a2a3a, 0x1a1a24);
+        // Main grid - lower opacity, positioned below origin
+        this.gridHelper = new THREE.GridHelper(100, 100, 0x444466, 0x333355);
+        this.gridHelper.position.y = -0.1;  // Offset to prevent z-fighting
         this.scene.add(this.gridHelper);
 
         // Major grid lines
-        const majorGrid = new THREE.GridHelper(100, 10, 0x3a3a4a, 0x3a3a4a);
+        const majorGrid = new THREE.GridHelper(100, 10, 0x5555aa, 0x5555aa);
+        majorGrid.position.y = -0.1;
         this.scene.add(majorGrid);
     }
 
@@ -139,14 +148,15 @@ class Viewer {
                     // Add new mesh
                     this.currentMesh = gltf.scene;
 
-                    // Apply material
+                    // Apply material - vibrant blue with proper settings
                     this.currentMesh.traverse((child) => {
                         if (child.isMesh) {
                             child.material = new THREE.MeshStandardMaterial({
-                                color: 0x3b82f6,
-                                metalness: 0.3,
-                                roughness: 0.7,
-                                wireframe: this.settings.wireframe
+                                color: 0x4a90d9,  // Bright blue
+                                metalness: 0.2,
+                                roughness: 0.6,
+                                wireframe: this.settings.wireframe,
+                                side: THREE.DoubleSide  // Render both sides
                             });
                         }
                     });
@@ -256,11 +266,57 @@ class Viewer {
             this.currentMesh.traverse((child) => {
                 if (child.isMesh && child.material) {
                     child.material.wireframe = this.settings.wireframe;
+                    // Use cyan color for wireframe visibility
+                    if (this.settings.wireframe) {
+                        child.material.color.setHex(0x00ffff);
+                        child.material.emissive = new THREE.Color(0x003333);
+                    } else {
+                        child.material.color.setHex(0x4a90d9);
+                        child.material.emissive = new THREE.Color(0x000000);
+                    }
                 }
             });
         }
 
         return this.settings.wireframe;
+    }
+
+    /**
+     * Set object position
+     */
+    setPosition(x, y, z) {
+        this.objectPosition = { x, y, z };
+        if (this.currentMesh) {
+            this.currentMesh.position.set(x, y, z);
+        }
+    }
+
+    /**
+     * Set object rotation (in degrees)
+     */
+    setRotation(x, y, z) {
+        this.objectRotation = { x, y, z };
+        if (this.currentMesh) {
+            this.currentMesh.rotation.set(
+                x * Math.PI / 180,
+                y * Math.PI / 180,
+                z * Math.PI / 180
+            );
+        }
+    }
+
+    /**
+     * Get current position
+     */
+    getPosition() {
+        return this.objectPosition;
+    }
+
+    /**
+     * Get current rotation
+     */
+    getRotation() {
+        return this.objectRotation;
     }
 
     /**

@@ -1,27 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TeXmExDeX Type Modeler</title>
-    <meta name="description" content="AI-powered CAD for precision mechanical components - gears, bolts, motor mounts and more">
-    
+    <meta name="description"
+        content="AI-powered CAD for precision mechanical components - gears, bolts, motor mounts and more">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    
+
     <!-- Monaco Editor -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
-    
+
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Header -->
@@ -53,20 +58,21 @@
                         <h3>What would you like to create?</h3>
                         <p>Describe your part in plain English. For example:</p>
                         <div class="quick-prompts">
-                            <button class="quick-prompt" data-prompt="M8 bolt, 30mm long with hex head">"M8 bolt, 30mm"</button>
-                            <button class="quick-prompt" data-prompt="5:1 planetary gear for NEMA 17 motor">"5:1 planetary gear"</button>
-                            <button class="quick-prompt" data-prompt="GT2 20-tooth pulley with 5mm bore">"GT2 pulley"</button>
-                            <button class="quick-prompt" data-prompt="NEMA 17 motor mount plate">"NEMA 17 mount"</button>
+                            <button class="quick-prompt" data-prompt="M8 bolt, 30mm long with hex head">"M8 bolt,
+                                30mm"</button>
+                            <button class="quick-prompt" data-prompt="5:1 planetary gear for NEMA 17 motor">"5:1
+                                planetary gear"</button>
+                            <button class="quick-prompt" data-prompt="GT2 20-tooth pulley with 5mm bore">"GT2
+                                pulley"</button>
+                            <button class="quick-prompt" data-prompt="NEMA 17 motor mount plate">"NEMA 17
+                                mount"</button>
                         </div>
                     </div>
                     <div class="chat-messages" id="chat-messages"></div>
                 </div>
                 <div class="chat-input-container">
-                    <textarea 
-                        id="chat-input" 
-                        placeholder="Describe your part... (e.g., 'M8 bolt with extra wide head')"
-                        rows="2"
-                    ></textarea>
+                    <textarea id="chat-input" placeholder="Describe your part... (e.g., 'M8 bolt with extra wide head')"
+                        rows="2"></textarea>
                     <button id="btn-send" class="btn btn-primary btn-send">
                         <span class="icon">➤</span>
                     </button>
@@ -99,7 +105,7 @@
                     <button class="tab active" data-tab="params">Parameters</button>
                     <button class="tab" data-tab="code">Code</button>
                 </div>
-                
+
                 <div class="tab-content active" id="tab-params">
                     <div class="params-container" id="params-container">
                         <div class="params-empty">
@@ -107,13 +113,56 @@
                             <p class="hint">Generate a part to see adjustable parameters.</p>
                         </div>
                     </div>
+
+                    <!-- Transform Controls -->
+                    <div class="transform-controls">
+                        <h3 class="section-title">📐 Transform</h3>
+                        <div class="transform-group">
+                            <label>Position</label>
+                            <div class="transform-row">
+                                <span class="axis-label axis-x">X</span>
+                                <input type="range" id="pos-x" min="-50" max="50" value="0" step="1">
+                                <span class="axis-value" id="pos-x-val">0</span>
+                            </div>
+                            <div class="transform-row">
+                                <span class="axis-label axis-y">Y</span>
+                                <input type="range" id="pos-y" min="-50" max="50" value="0" step="1">
+                                <span class="axis-value" id="pos-y-val">0</span>
+                            </div>
+                            <div class="transform-row">
+                                <span class="axis-label axis-z">Z</span>
+                                <input type="range" id="pos-z" min="-50" max="50" value="0" step="1">
+                                <span class="axis-value" id="pos-z-val">0</span>
+                            </div>
+                        </div>
+                        <div class="transform-group">
+                            <label>Rotation</label>
+                            <div class="transform-row">
+                                <span class="axis-label axis-x">X</span>
+                                <input type="range" id="rot-x" min="0" max="360" value="0" step="5">
+                                <span class="axis-value" id="rot-x-val">0°</span>
+                            </div>
+                            <div class="transform-row">
+                                <span class="axis-label axis-y">Y</span>
+                                <input type="range" id="rot-y" min="0" max="360" value="0" step="5">
+                                <span class="axis-value" id="rot-y-val">0°</span>
+                            </div>
+                            <div class="transform-row">
+                                <span class="axis-label axis-z">Z</span>
+                                <input type="range" id="rot-z" min="0" max="360" value="0" step="5">
+                                <span class="axis-value" id="rot-z-val">0°</span>
+                            </div>
+                        </div>
+                        <button id="btn-reset-transform" class="btn btn-secondary btn-small">Reset Transform</button>
+                    </div>
+
                     <div class="params-actions">
                         <button id="btn-regenerate" class="btn btn-secondary btn-full">
                             🔄 Regenerate Mesh
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="tab-content" id="tab-code">
                     <div class="code-container" id="code-container"></div>
                     <div class="code-actions">
@@ -161,4 +210,5 @@
     <script src="js/chat.js"></script>
     <script src="js/app.js"></script>
 </body>
+
 </html>
