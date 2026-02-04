@@ -74,8 +74,16 @@ class API {
      * Send a chat message to generate code
      */
     async chatToCode(message, history = [], currentCode = '') {
+        console.log('=== chatToCode CALLED ===');
+        console.log('Message:', message);
+        console.log('Base URL:', this.baseUrl);
+        console.log('API Prefix:', this.apiPrefix);
+
         try {
+            console.log('Calling _callGradio5 with fn_name: chat_to_code');
             const response = await this._callGradio5('chat_to_code', [message, history, currentCode]);
+            console.log('_callGradio5 returned:', response);
+
             return {
                 success: true,
                 code: response[0],
@@ -84,6 +92,7 @@ class API {
             };
         } catch (error) {
             console.error('Chat API error:', error);
+            console.error('Error stack:', error.stack);
             return {
                 success: false,
                 error: error.message
@@ -247,29 +256,43 @@ class API {
      * Call Gradio 5.x API using queue/join pattern
      */
     async _callGradio5(fnName, args) {
+        console.log('=== _callGradio5 START ===');
+        console.log('Function name:', fnName);
+        console.log('Arguments:', args);
+
         // Ensure connection is initialized
         await this.checkConnection();
+        console.log('Connection check done, isConnected:', this.isConnected);
 
         // Step 1: Submit to queue
         const submitUrl = `${this.baseUrl}${this.apiPrefix}/queue/join`;
+        console.log('Submitting to:', submitUrl);
+
+        const requestBody = {
+            data: args,
+            fn_index: this._getFnIndex(fnName),
+            session_hash: this.sessionHash
+        };
+        console.log('Request body:', JSON.stringify(requestBody));
+
         const submitResponse = await fetch(submitUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                data: args,
-                fn_index: this._getFnIndex(fnName),
-                session_hash: this.sessionHash
-            })
+            body: JSON.stringify(requestBody)
         });
 
+        console.log('Submit response status:', submitResponse.status, submitResponse.statusText);
+
         if (!submitResponse.ok) {
+            console.log('Queue/join failed, falling back to legacy...');
             // Fallback: try the old /api/predict endpoint  
             return await this._callGradioLegacy(fnName, args);
         }
 
         const submitResult = await submitResponse.json();
+        console.log('Submit result:', submitResult);
         const eventId = submitResult.event_id;
 
         // Step 2: Poll for result using SSE or data endpoint
