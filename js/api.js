@@ -164,10 +164,22 @@ class API {
     async validateCode(code) {
         try {
             const response = await this._callGradio5('validate_code', [code]);
+
+            // Parse warnings JSON string
+            let warnings = [];
+            try {
+                if (response[1]) {
+                    warnings = JSON.parse(response[1]);
+                }
+            } catch (e) {
+                console.warn('Failed to parse warnings JSON:', e);
+                warnings = [];
+            }
+
             return {
                 success: true,
                 message: response[0],
-                warnings: response[1]
+                warnings: warnings
             };
         } catch (error) {
             console.error('Validation error:', error);
@@ -184,11 +196,23 @@ class API {
     async autoFixCode(code) {
         try {
             const response = await this._callGradio5('auto_fix_code', [code]);
+
+            // Parse fixes JSON string
+            let fixes = [];
+            try {
+                if (response[2]) {
+                    fixes = JSON.parse(response[2]);
+                }
+            } catch (e) {
+                console.warn('Failed to parse fixes JSON:', e);
+                fixes = [];
+            }
+
             return {
                 success: true,
                 fixedCode: response[0],
                 status: response[1],
-                fixes: response[2]
+                fixes: fixes
             };
         } catch (error) {
             console.error('Auto-fix error:', error);
